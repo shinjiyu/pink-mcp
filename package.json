@@ -1,0 +1,46 @@
+{
+  "name": "pink-mcp",
+  "displayName": "PinK MCP",
+  "description": "把 PinK 里的 pink_* 工具暴露成本机 MCP，供 Cursor 调用",
+  "version": "0.1.0",
+  "publisher": "local",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.110.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js",
+  "scripts": {
+    "test": "node scripts/test-server.js"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "pinkMcp.copyConfig",
+        "title": "PinK MCP: 复制 Cursor 配置"
+      },
+      {
+        "command": "pinkMcp.restart",
+        "title": "PinK MCP: 重启服务"
+      }
+    ],
+    "configuration": {
+      "title": "PinK MCP",
+      "properties": {
+        "pinkMcp.port": {
+          "type": "number",
+          "default": 37720,
+          "minimum": 1024,
+          "maximum": 65535,
+          "description": "本机 MCP 端口。服务只绑定 127.0.0.1。"
+        },
+        "pinkMcp.token": {
+          "type": "string",
+          "default": "",
+          "description": "留空则本机请求不校验。填写后，请求必须带 Authorization: Bearer <token>。"
+        }
+      }
+    }
+  }
+}
