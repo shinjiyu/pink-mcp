@@ -12,6 +12,10 @@ PinK 自己启动的 cocos-cli MCP 端点是关着的。这个插件不走那条
 
 多开时先调 `pink_mcp_list_instances`，再用 `pink_mcp_use_instance` 选窗口。只开一个 PinK 窗口时会自动选中。
 
+额外提供 `pink_mcp_execute_command`：在选中窗口里跑白名单命令（`pink.*` / `cocos.*`，以及打开资源、Reload、预览相关命令）。**不走** PinK Chat 确认，适合拉起编辑器预览；不能用来绕过 `pink_assets_*` / `pink_scene_*` 写入门禁。
+
+场景绑定、截图、资源写入仍然需要 PinK 本地主 Chat 的 `toolInvocationToken`。从 Cursor / 外部 MCP 客户端直接 `invokeTool` 时没有这份身份，这些写入会失败。
+
 ## 安装
 
 ```bash

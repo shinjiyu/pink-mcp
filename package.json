@@ -6,10 +6,17 @@
   "publisher": "local",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.110.0"
+    "vscode": "^1.90.0"
   },
-  "categories": ["Other"],
-  "activationEvents": ["onStartupFinished", "onPinkInit"],
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onPinkInit",
+    "onPinkReady",
+    "*"
+  ],
   "main": "./extension.js",
   "scripts": {
     "test": "node scripts/test-server.js",

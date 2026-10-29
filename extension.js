@@ -88,6 +88,7 @@ async function restart(channel, status) {
       listInstances: () => registry.prune(stateDir()).map(registry.publicInstance),
       currentSelection: () => currentSelection(),
       useInstance,
+      executeCommand,
       resolveTarget: () => resolveTarget(),
       proxyTool: (target, name, args, signal) => proxyTool(target, name, args, token, signal),
     });
@@ -145,6 +146,8 @@ async function callTool(name, args, signal) {
   if (signal && signal.aborted) source.cancel();
   else if (signal) signal.addEventListener("abort", onAbort, { once: true });
   try {
+    // Scene/asset writes need PinK Chat toolInvocationToken (chatParticipantPrivate).
+    // Outside Chat, invokeTool cannot supply that identity; use pink_mcp_execute_command for preview.
     const result = await vscode.lm.invokeTool(name, {
       input: args,
       toolInvocationToken: undefined,
@@ -177,6 +180,34 @@ function useInstance(args) {
     updatedAt: new Date().toISOString(),
   });
   return selected;
+}
+
+const COMMAND_ALLOW = new Set([
+  "vscode.open",
+  "vscode.openWith",
+  "workbench.action.reloadWindow",
+  "workbench.action.files.revert",
+  "workbench.action.closeActiveEditor",
+  "pinkMcp.restart",
+  "sudPinkPack.preview.open",
+]);
+
+async function executeCommand(args) {
+  const command = args && typeof args.command === "string" ? args.command.trim() : "";
+  if (!command) throw new Error("command is required");
+  if (!COMMAND_ALLOW.has(command) && !command.startsWith("pink.") && !command.startsWith("cocos.")) {
+    throw new Error("Command not allowlisted: " + command);
+  }
+  const callArgs = Array.isArray(args.args) ? args.args.slice() : [];
+  // Resolve file:// or absolute paths in args to vscode.Uri
+  for (let i = 0; i < callArgs.length; i++) {
+    const value = callArgs[i];
+    if (typeof value === "string" && (value.startsWith("file:") || value.startsWith("/"))) {
+      callArgs[i] = vscode.Uri.file(value.startsWith("file:") ? vscode.Uri.parse(value).fsPath : value);
+    }
+  }
+  const result = await vscode.commands.executeCommand(command, ...callArgs);
+  return { ok: true, command, result: result === undefined ? null : result };
 }
 
 function resolveTarget() {

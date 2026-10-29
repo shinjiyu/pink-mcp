@@ -42,6 +42,18 @@ const VIRTUAL_TOOLS = [
     inputSchema: { type: "object", properties: {} },
     annotations: { readOnlyHint: true },
   },
+  {
+    name: "pink_mcp_execute_command",
+    description: "Run an allowlisted PinK/VS Code command in the selected window (open scene, preview, reload window). Not a pink_* Chat write.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        command: { type: "string", minLength: 1, description: "Command id, for example vscode.open or workbench.action.reloadWindow" },
+        args: { type: "array", description: "Optional command arguments as a JSON array" },
+      },
+      required: ["command"],
+    },
+  },
 ];
 
 function isReadOnlyName(name) {
@@ -319,6 +331,15 @@ function startMcpServer(options) {
     if (name === "pink_mcp_current") {
       const selected = options.currentSelection ? options.currentSelection() : publicIdentity();
       return Promise.resolve(okJson({ self: publicIdentity(), selected }));
+    }
+    if (name === "pink_mcp_execute_command") {
+      if (typeof options.executeCommand !== "function") {
+        return toolError("This process cannot run editor commands.");
+      }
+      return Promise.resolve(options.executeCommand(args || {})).then(
+        (result) => okJson(result && typeof result === "object" ? result : { ok: true, result }),
+        (error) => toolError(error && error.message ? error.message : String(error))
+      );
     }
     return Promise.resolve(toolError("Unknown tool: " + name));
   }
